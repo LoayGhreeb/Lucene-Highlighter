@@ -1,6 +1,7 @@
 package org.example;
 
 import java.io.IOException;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -22,7 +23,7 @@ import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
 
-public class Main {
+public class LuceneHighlighter {
 
     static final String[] fields = {
             "JohanssonGustafssonkopp2015Gustafsson",
@@ -45,7 +46,7 @@ public class Main {
 
     static final String QUERY = "issue";
     static final String defaultField = "f";
-    static Directory dir = new ByteBuffersDirectory();
+    static Directory directory = new ByteBuffersDirectory();
     static Analyzer analyzer = new NGramAnalyzer(EnglishAnalyzer.ENGLISH_STOP_WORDS_SET, Integer.MAX_VALUE);
 
     public static void main(String[] args) throws Exception {
@@ -54,7 +55,7 @@ public class Main {
     }
 
     static void makeIndex() throws IOException {
-        IndexWriter writer = new IndexWriter(dir, new IndexWriterConfig(analyzer));
+        IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig(analyzer));
 
         Document document = new Document();
         for(String field : fields) {
@@ -68,11 +69,11 @@ public class Main {
         QueryParser parser = new QueryParser(defaultField, new StandardAnalyzer());
         Query query = parser.parse(QUERY);
 
-        try (IndexReader reader = DirectoryReader.open(dir)) {
+        try (IndexReader reader = DirectoryReader.open(directory)) {
             IndexSearcher searcher = new IndexSearcher(reader);
-            TopDocs docs = searcher.search(query, 10);
-            System.out.printf("QUERY : %s \n", QUERY);
-            System.out.printf("total hits : %s \n", docs.totalHits);
+            TopDocs topDocs = searcher.search(query, 10);
+            System.out.printf("parsed query: %s \n", query);
+            System.out.printf("total hits: %s \n", topDocs.totalHits);
 
             Highlighter highlighter = new Highlighter(new SimpleHTMLFormatter("<mark>", "</mark>"), new QueryScorer(query));
             highlighter.setTextFragmenter(new NullFragmenter());
